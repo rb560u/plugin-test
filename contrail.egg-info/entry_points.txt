@@ -1,0 +1,3 @@
+[tempest.test_plugins]
+plugin_name = contrail_tempest_plugin.plugin:ContrailPlugin
+
