@@ -12,17 +12,14 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from oslo_log import log as logging
 
-from oslo_serialization import jsonutils as json
-
-from tempest_lib import exceptions as lib_exc
-from tempest_lib.common import rest_client
-
+from contrail_tempest_plugin.services.contrail.json import base
 from six.moves.urllib import parse as urllib
-import six
 
-LOG = logging.getLogger(__name__)
+class VirtualDNSClient(base.BaseContrailClient):
 
-class BaseContrailClient(rest_client.RestClient):
-    """Base Tempest REST client for Contrail API"""
+    def list_virtual_DNSs(self, params=None):
+        url = '/virtual-DNSs'
+        if params:
+            url += '?%s' % urllib.urlencode(params)
+        return self.get(url)

@@ -14,9 +14,12 @@
 #    under the License.
 
 from contrail_tempest_plugin.services.contrail.json import base
-
+from six.moves.urllib import parse as urllib
 
 class ContrailClient(base.BaseContrailClient):
 
     def list_virtual_routers(self, params=None):
-        return self._list_request('/virtual-routers', params=params)
+        url = '/virtual-routers'
+        if params:
+            url += '?%s' % urllib.urlencode(params)
+        return self.get(url)

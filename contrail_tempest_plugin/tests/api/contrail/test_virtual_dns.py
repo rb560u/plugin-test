@@ -16,33 +16,36 @@ from oslo_log import log as logging
 
 from contrail_tempest_plugin.tests.api.contrail import base
 
+from contrail_tempest_plugin.services.contrail.json.virtual_dns_client import \
+    VirtualDNSClient
+
 from tempest.common.rbac import rbac_rule_validation
 from tempest.common.rbac.rbac_utils import rbac_utils
 
+from tempest import config
 from tempest import test
 
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
-class ContrailTest(base.BaseContrailTest):
 
+class VirtualDNSTest(base.BaseContrailTest):
+
+    @classmethod
+    def setup_clients(cls):
+        super(VirtualDNSTest, cls).setup_clients()
+        cls.client = VirtualDNSClient(
+            cls.auth_provider,
+            CONF.sdn.catalog_type,
+            CONF.identity.region,
+            CONF.sdn.endpoint_type)
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
-                                 rule="list_virtual_routers")
-    @test.idempotent_id('375ebc8d-dc52-4d9c-877b-84aaa34b1539')
-    def test_list_virtual_routers(self):
+                                 rule="list_virtual_DNSs")
+    def test_list_virtual_DNSs(self):
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
-            body = self.client.list_virtual_routers()
-            LOG.debug("\n\n\n\n\nRick\n\n")
-            LOG.debug(body)
-            LOG.debug("\n\n\n------------") 
+            body = self.client.list_virtual_DNSs()
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-
-    '''
-    def test_list_virtual_routers(self):
-        body = self.client.list_virtual_routers()
-        self.assertEqual('1', '2')
-        print body
-    '''
