@@ -20,51 +20,51 @@ from six.moves.urllib import parse as urllib
 from tempest.common.utils import data_utils
 
 
-class NamespaceClient(base.BaseContrailClient):
+class ProjectClient(base.BaseContrailClient):
 
-    def list_namespaces(self, params=None):
-        url = '/namespaces'
+    def list_projects(self, params=None):
+        url = '/projects'
         if params:
             url += '?%s' % urllib.urlencode(params)
         return self.get(url)
 
-    def create_namespace(self, fq_name=None, **kwargs):
+    def create_project(self, fq_name=None, **kwargs):
         if fq_name is None:
-            fq_name = data_utils.rand_name('namespace')
-        url = '/namespaces'
+            fq_name = data_utils.rand_name('project')
+        url = '/projects'
         post_body = {
-            'namespace': {
+            'project': {
                 'parent_type': 'domain',
                 'fq_name': ['default-domain', fq_name]
             }
         }
         if kwargs:
-            post_body['namespace'].update(kwargs)
+            post_body['project'].update(kwargs)
 
         resp, body = self.post(url, json.dumps(post_body))
         resp_body = json.loads(body)
 
-        if 'namespace' in resp_body:
-            return resp, resp_body['namespace']['uuid']
+        if 'project' in resp_body:
+            return resp, resp_body['project']['uuid']
         return resp, None
 
-    def show_namespace(self, uuid, params=None):
-        url = '/namespace/{0}'.format(uuid)
+    def show_project(self, uuid, params=None):
+        url = '/project/{0}'.format(uuid)
         if params:
             url += '?%s' % urllib.urlencode(params)
         return self.get(url)
 
-    def update_namespace(self, uuid, **kwargs):
-        url = '/namespace/{0}'.format(uuid)
+    def update_project(self, uuid, **kwargs):
+        url = '/project/{0}'.format(uuid)
         put_body = {
-            'namespace': {
-                'display_name': data_utils.rand_name('namespace')
+            'project': {
+                'display_name': data_utils.rand_name('project')
             }
         }
         if kwargs:
-            post_body['namespace'].update(kwargs)
+            post_body['project'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
-    def delete_namespace(self, uuid):
-        url = '/namespace/{0}'.format(uuid)
+    def delete_project(self, uuid):
+        url = '/project/{0}'.format(uuid)
         return self.delete(url)
