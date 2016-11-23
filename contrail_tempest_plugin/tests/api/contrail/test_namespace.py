@@ -61,8 +61,8 @@ class NamespaceContrailTest(base.BaseContrailTest):
             was_created = resp.status == 200
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-        if was_created:
-            self.client.delete_namespace(ns_uuid)
+            if was_created:
+                self.client.delete_namespace(ns_uuid)
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
@@ -89,8 +89,8 @@ class NamespaceContrailTest(base.BaseContrailTest):
             self.client.update_namespace(ns_uuid)
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-        if was_created:
-            self.client.delete_namespace(ns_uuid)
+            if was_created:
+                self.client.delete_namespace(ns_uuid)
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
@@ -105,5 +105,5 @@ class NamespaceContrailTest(base.BaseContrailTest):
             was_deleted = resp.status == 200
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-        if was_created and not was_deleted:
-            self.client.delete_namespace(ns_uuid)
+            if was_created and not was_deleted:
+                self.client.delete_namespace(ns_uuid)
