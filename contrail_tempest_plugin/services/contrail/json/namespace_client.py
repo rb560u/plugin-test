@@ -60,7 +60,7 @@ class NamespaceClient(base.BaseContrailClient):
             }
         }
         if kwargs:
-            post_body['namespace'].update(kwargs)
+            put_body['namespace'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
     def delete_namespace(self, uuid):
