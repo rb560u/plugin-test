@@ -15,6 +15,7 @@
 
 from contrail_tempest_plugin.services.contrail.json import base
 from six.moves.urllib import parse as urllib
+from oslo_serialization import jsonutils as json
 
 
 class VirtualNetworkClient(base.BaseContrailClient):
