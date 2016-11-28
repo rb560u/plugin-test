@@ -62,7 +62,7 @@ class RoutingPolicyClient(base.BaseContrailClient):
             }
         }
         if kwargs:
-            post_body['routing-policy'].update(kwargs)
+            put_body['routing-policy'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
     def delete_policy(self, uuid):
