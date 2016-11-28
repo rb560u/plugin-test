@@ -16,6 +16,9 @@ from oslo_log import log as logging
 from tempest import config
 from tempest import test
 
+from contrail_tempest_plugin.services.contrail.json.\
+    virtual_network_client import VirtualNetworkClient
+
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -42,3 +45,9 @@ class BaseContrailTest(test.BaseTestCase):
         super(BaseContrailTest, cls).setup_clients()
         cls.auth_provider = cls.os.auth_provider
         cls.admin_client = cls.os_adm.network_client
+
+        cls.vn_client = VirtualNetworkClient(
+            cls.auth_provider,
+            CONF.sdn.catalog_type,
+            CONF.identity.region,
+            CONF.sdn.endpoint_type)
