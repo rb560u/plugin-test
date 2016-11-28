@@ -62,7 +62,7 @@ class ProjectClient(base.BaseContrailClient):
             }
         }
         if kwargs:
-            post_body['project'].update(kwargs)
+            put_body['project'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
     def delete_project(self, uuid):
