@@ -61,7 +61,7 @@ class DomainClient(base.BaseContrailClient):
             }
         }
         if kwargs:
-            post_body['domain'].update(kwargs)
+            put_body['domain'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
     def delete_domain(self, uuid):
