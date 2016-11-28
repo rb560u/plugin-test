@@ -62,7 +62,7 @@ class NetworkPolicyClient(base.BaseContrailClient):
             }
         }
         if kwargs:
-            post_body['network-policy'].update(kwargs)
+            put_body['network-policy'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
     def delete_policy(self, uuid):
