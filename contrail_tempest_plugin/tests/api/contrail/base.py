@@ -20,6 +20,9 @@ from tempest_lib import exceptions
 from contrail_tempest_plugin.services.contrail.json.floating_ip_client import \
     FloatingIpClient
 
+from contrail_tempest_plugin.services.contrail.json.\
+    virtual_network_client import VirtualNetworkClient
+
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -53,6 +56,12 @@ class BaseContrailTest(test.BaseTestCase):
             CONF.identity.region,
             CONF.sdn.endpoint_type)
 
+        cls.vn_client = VirtualNetworkClient(
+            cls.auth_provider,
+            CONF.sdn.catalog_type,
+            CONF.identity.region,
+            CONF.sdn.endpoint_type)
+
     @classmethod
     def _try_delete_resource(self, delete_callable, *args, **kwargs):
         """Cleanup resources in case of test-failure
@@ -72,3 +81,5 @@ class BaseContrailTest(test.BaseTestCase):
         # if resource is not found, this means it was deleted in the test
         except exceptions.NotFound:
             pass
+=======
+>>>>>>> 0ecc46c45564669a1a68fd22644f6bca0dbe102a
