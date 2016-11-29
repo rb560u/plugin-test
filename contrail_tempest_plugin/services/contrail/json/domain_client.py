@@ -20,51 +20,50 @@ from six.moves.urllib import parse as urllib
 from tempest.common.utils import data_utils
 
 
-class NamespaceClient(base.BaseContrailClient):
+class DomainClient(base.BaseContrailClient):
 
-    def list_namespaces(self, params=None):
-        url = '/namespaces'
+    def list_domains(self, params=None):
+        url = '/domains'
         if params:
             url += '?%s' % urllib.urlencode(params)
         return self.get(url)
 
-    def create_namespace(self, fq_name=None, **kwargs):
+    def create_domain(self, fq_name=None, **kwargs):
         if fq_name is None:
-            fq_name = data_utils.rand_name('namespace')
-        url = '/namespaces'
+            fq_name = data_utils.rand_name('domain')
+        url = '/domains'
         post_body = {
-            'namespace': {
-                'parent_type': 'domain',
-                'fq_name': ['default-domain', fq_name]
+            'domain': {
+                'fq_name': [fq_name]
             }
         }
         if kwargs:
-            post_body['namespace'].update(kwargs)
+            post_body['domain'].update(kwargs)
 
         resp, body = self.post(url, json.dumps(post_body))
         resp_body = json.loads(body)
 
-        if 'namespace' in resp_body:
-            return resp, resp_body['namespace']['uuid']
+        if 'domain' in resp_body:
+            return resp, resp_body['domain']['uuid']
         return resp, None
 
-    def show_namespace(self, uuid, params=None):
-        url = '/namespace/{0}'.format(uuid)
+    def show_domain(self, uuid, params=None):
+        url = '/domain/{0}'.format(uuid)
         if params:
             url += '?%s' % urllib.urlencode(params)
         return self.get(url)
 
-    def update_namespace(self, uuid, **kwargs):
-        url = '/namespace/{0}'.format(uuid)
+    def update_domain(self, uuid, **kwargs):
+        url = '/domain/{0}'.format(uuid)
         put_body = {
-            'namespace': {
-                'display_name': data_utils.rand_name('namespace')
+            'domain': {
+                'display_name': data_utils.rand_name('domain')
             }
         }
         if kwargs:
-            put_body['namespace'].update(kwargs)
+            put_body['domain'].update(kwargs)
         return self.put(url, json.dumps(put_body))
 
-    def delete_namespace(self, uuid):
-        url = '/namespace/{0}'.format(uuid)
+    def delete_domain(self, uuid):
+        url = '/domain/{0}'.format(uuid)
         return self.delete(url)
