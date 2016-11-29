@@ -15,6 +15,10 @@
 from oslo_log import log as logging
 from tempest import config
 from tempest import test
+from tempest_lib import exceptions
+
+from contrail_tempest_plugin.services.contrail.json.floating_ip_client import \
+    FloatingIpClient
 
 
 CONF = config.CONF
@@ -42,3 +46,29 @@ class BaseContrailTest(test.BaseTestCase):
         super(BaseContrailTest, cls).setup_clients()
         cls.auth_provider = cls.os.auth_provider
         cls.admin_client = cls.os_adm.network_client
+
+        cls.fip_client = FloatingIpClient(
+            cls.auth_provider,
+            CONF.sdn.catalog_type,
+            CONF.identity.region,
+            CONF.sdn.endpoint_type)
+
+    @classmethod
+    def _try_delete_resource(self, delete_callable, *args, **kwargs):
+        """Cleanup resources in case of test-failure
+
+        Some resources are explicitly deleted by the test.
+        If the test failed to delete a resource, this method will execute
+        the appropriate delete methods. Otherwise, the method ignores NotFound
+        exceptions thrown for resources that were correctly deleted by the
+        test.
+
+        :param delete_callable: delete method
+        :param args: arguments for delete method
+        :param kwargs: keyword arguments for delete method
+        """
+        try:
+            delete_callable(*args, **kwargs)
+        # if resource is not found, this means it was deleted in the test
+        except exceptions.NotFound:
+            pass
