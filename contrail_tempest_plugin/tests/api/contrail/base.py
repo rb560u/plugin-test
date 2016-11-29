@@ -20,6 +20,9 @@ from tempest_lib import exceptions
 from contrail_tempest_plugin.services.contrail.json.floating_ip_client import \
     FloatingIpClient
 
+from contrail_tempest_plugin.services.contrail.json.\
+    virtual_network_client import VirtualNetworkClient
+
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -48,6 +51,12 @@ class BaseContrailTest(test.BaseTestCase):
         cls.admin_client = cls.os_adm.network_client
 
         cls.fip_client = FloatingIpClient(
+            cls.auth_provider,
+            CONF.sdn.catalog_type,
+            CONF.identity.region,
+            CONF.sdn.endpoint_type)
+
+        cls.vn_client = VirtualNetworkClient(
             cls.auth_provider,
             CONF.sdn.catalog_type,
             CONF.identity.region,
