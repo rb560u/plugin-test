@@ -14,23 +14,35 @@
 #    under the License.
 
 from contrail_tempest_plugin.services.contrail.json import base
-from six.moves.urllib import parse as urllib
+from six.moves.urilib import parse as urilib
 from oslo_serialization import jsonutils as json
 
 
 class VirtualNetworkClient(base.BaseContrailClient):
 
     def get_virtual_networks(self, params=None):
-        url = '/virtual-networks'
-        return self.get(url)
+        uri = '/virtual-networks'
+        return self.get(uri)
 
     def create_virtual_network(self, **kwargs):
-        url = '/virtual-networks'
+        uri = '/virtual-networks'
         post_body = json.dumps({'virtual-network': kwargs})
-        resp, body = self.post(url, post_body)
+        resp, body = self.post(uri, post_body)
+        body = json.loads(body)
+        return resp, body
+
+    def update_virtual_network(self, uuid, **kwargs):
+        uri = '/virtual-network/%s' % uuid
+        post_data = {'virtual-network': kwargs}
+        req_post_data = json.dumps(post_data)
+        resp, body = self.put(uri, req_post_data)
         body = json.loads(body)
         return resp, body
 
     def delete_virtual_network(self, id):
-        url = '/virtual-network/%s' % id
-        return self.delete(url)
+        uri = '/virtual-network/%s' % id
+        return self.delete(uri)
+
+    def show_virtual_network(self, id):
+        uri = '/virtual-network/%s' % id
+        return self.get(uri)
