@@ -38,9 +38,16 @@ class DiscoveryServiceAssignmentClientTest(base.BaseContrailTest):
             CONF.sdn.endpoint_type)
         cls.admin_client = cls.os_adm.network_client
 
-    def _generate_names(self):
-        name_list = [data_utils.rand_name('test')]
-        return name_list
+    def _create_discovery_service_assignments(self):
+        dsa_name = [data_utils.rand_name('test-dsa')]
+
+        new_dsa = self.client.create_discovery_service_assignments(
+                fq_name=dsa_name)['discovery-service-assignment']
+
+        self.addCleanup(self._try_delete_resource,
+                        self.client.delete_discovery_service_assignments,
+                        new_dsa['uuid'])
+        return new_dsa
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
@@ -58,42 +65,30 @@ class DiscoveryServiceAssignmentClientTest(base.BaseContrailTest):
                                  rule="create_discovery_service_assignments")
     @test.idempotent_id('40ad1208-a039-4809-8516-41b4dfcbd00c')
     def test_create_discovery_service_assignments(self):
-        new_dsa = None
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
-            new_dsa =\
-                self.client.create_discovery_service_assignments(
-                    fq_name=self._generate_names())['discovery-service'
-                                                    '-assignment']
+            new_dsa = self._create_discovery_service_assignments()
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            if new_dsa:
-                (self.client.
-                 delete_discovery_service_assignments(new_dsa['uuid']))
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="show_discovery_service_assignments")
     @test.idempotent_id('63660fe9-22b8-456c-a757-a7da1abfbce8')
     def test_show_discovery_service_assignments(self):
-        new_dsa =\
-            self.client.create_discovery_service_assignments(
-                fq_name=self._generate_names())['discovery-service-assignment']
+        new_dsa = self._create_discovery_service_assignments()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.show_discovery_service_assignments(new_dsa['uuid'])
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.client.delete_discovery_service_assignments(new_dsa['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="update_discovery_service_assignments")
     @test.idempotent_id('71ce1404-965b-4670-abb7-5b6fea3b24b7')
     def test_update_discovery_service_assignments(self):
-        new_dsa =\
-            self.client.create_discovery_service_assignments(
-                fq_name=self._generate_names())['discovery-service-assignment']
+        new_dsa = self._create_discovery_service_assignments()
         update_name = data_utils.rand_name('test')
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
@@ -104,22 +99,15 @@ class DiscoveryServiceAssignmentClientTest(base.BaseContrailTest):
                                                      display_name=update_name))
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.client.delete_discovery_service_assignments(new_dsa['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="delete_discovery_service_assignments")
     @test.idempotent_id('e7ff845d-2140-4eb0-9720-26370459723b')
     def test_delete_discovery_service_assignments(self):
-        new_dsa =\
-            self.client.create_discovery_service_assignments(
-                fq_name=self._generate_names())['discovery-service-assignment']
+        new_dsa = self._create_discovery_service_assignments()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.delete_discovery_service_assignments(new_dsa['uuid'])
-            new_dsa = None
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            if new_dsa:
-                (self.client.
-                    delete_discovery_service_assignments(new_dsa['uuid']))

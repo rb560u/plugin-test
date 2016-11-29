@@ -38,11 +38,32 @@ class ServiceAppliancesClientTest(base.BaseContrailTest):
             CONF.sdn.endpoint_type)
         cls.admin_client = cls.os_adm.network_client
 
-    def _generate_names(self, name_list=None):
-        if not name_list:
-            name_list = ['default-global-system-config']
-        name_list.append(data_utils.rand_name('test'))
-        return name_list
+    def _create_service_appliance_sets(self):
+        set_name = data_utils.rand_name('test-set')
+        set_fq_name = ['default-global-system-config', set_name]
+
+        new_set = self.client.create_service_appliance_sets(
+                parent_type='global-system-config',
+                fq_name=set_fq_name)['service-appliance-set']
+
+        self.addCleanup(self._try_delete_resource,
+                        self.client.delete_service_appliance_sets,
+                        new_set['uuid'])
+        return new_set
+
+    def _create_service_appliances(self, app_set):
+        appliance_name = data_utils.rand_name('test-appliance')
+        appliance_fq_name = app_set['fq_name']
+        appliance_fq_name.append(appliance_name)
+
+        new_appliance = self.client.create_service_appliances(
+                parent_type='service-appliance-set',
+                fq_name=appliance_fq_name)['service-appliance']
+
+        self.addCleanup(self._try_delete_resource,
+                        self.client.delete_service_appliances,
+                        new_appliance['uuid'])
+        return new_appliance
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
@@ -60,57 +81,33 @@ class ServiceAppliancesClientTest(base.BaseContrailTest):
                                  rule="create_service_appliances")
     @test.idempotent_id('0563c0c8-b986-466e-8540-aa8ad7a10367')
     def test_create_service_appliances(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
-        new_appliance = None
+        new_set = self._create_service_appliance_sets()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
-            new_appliance =\
-                self.client.create_service_appliances(
-                    fq_name=self._generate_names(new_set['fq_name']),
-                    parent_type="service-appliance-set")['service-appliance']
+            new_appliance = self._create_service_appliances(new_set)
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            if new_appliance:
-                self.client.delete_service_appliances(new_appliance['uuid'])
-            self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="show_service_appliances")
     @test.idempotent_id('ea30dcfe-8657-4a7d-9cf1-3176d334bf27')
     def test_show_service_appliances(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
-        new_appliance =\
-            self.client.create_service_appliances(
-                fq_name=self._generate_names(new_set['fq_name']),
-                parent_type="service-appliance-set")['service-appliance']
+        new_set = self._create_service_appliance_sets()
+        new_appliance = self._create_service_appliances(new_set)
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.show_service_appliances(new_appliance['uuid'])
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.client.delete_service_appliances(new_appliance['uuid'])
-            self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="update_service_appliances")
     @test.idempotent_id('a54ca33a-8590-4844-96d7-b96882b59e86')
     def test_update_service_appliances(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
-        new_appliance =\
-            self.client.create_service_appliances(
-                fq_name=self._generate_names(new_set['fq_name']),
-                parent_type="service-appliance-set")['service-appliance']
+        new_set = self._create_service_appliance_sets()
+        new_appliance = self._create_service_appliances(new_set)
         update_name = data_utils.rand_name('test')
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
@@ -118,31 +115,19 @@ class ServiceAppliancesClientTest(base.BaseContrailTest):
                                                   display_name=update_name)
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.client.delete_service_appliances(new_appliance['uuid'])
-            self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="delete_service_appliances")
     @test.idempotent_id('362deff5-7b72-4929-ba81-972cfcfa1309')
     def test_delete_service_appliances(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
-        new_appliance =\
-            self.client.create_service_appliances(
-                fq_name=self._generate_names(new_set['fq_name']),
-                parent_type="service-appliance-set")['service-appliance']
+        new_set = self._create_service_appliance_sets()
+        new_appliance = self._create_service_appliances(new_set)
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.delete_service_appliances(new_appliance['uuid'])
-            new_appliance = None
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            if new_appliance:
-                self.client.delete_service_appliances(new_appliance['uuid'])
-            self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
@@ -161,43 +146,29 @@ class ServiceAppliancesClientTest(base.BaseContrailTest):
     @test.idempotent_id('eb00d6cf-590f-41bf-8ee4-5be625d9cb93')
     def test_create_service_appliance_sets(self):
         rbac_utils.switch_role(self, switchToRbacRole=True)
-        new_set = None
         try:
-            new_set =\
-                self.client.create_service_appliance_sets(
-                    fq_name=self._generate_names(),
-                    parent_type="global-system-config")['service-'
-                                                        'appliance-set']
+            new_set = self._create_service_appliance_sets()
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            if new_set:
-                self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="show_service_appliance_sets")
     @test.idempotent_id('dd35dd04-e7d9-46bb-8f36-26835f122572')
     def test_show_service_appliance_sets(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
+        new_set = self._create_service_appliance_sets()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.show_service_appliance_sets(new_set['uuid'])
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="update_service_appliance_sets")
     @test.idempotent_id('952f063b-bc71-4f62-83b1-719bce5ad4ed')
     def test_update_service_appliance_sets(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
+        new_set = self._create_service_appliance_sets()
         update_name = data_utils.rand_name('test')
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
@@ -205,22 +176,15 @@ class ServiceAppliancesClientTest(base.BaseContrailTest):
                                                       display_name=update_name)
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.client.delete_service_appliance_sets(new_set['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="delete_service_appliance_sets")
     @test.idempotent_id('7b56ce24-da1d-4565-bd22-c58dc57d7045')
     def test_delete_service_appliance_sets(self):
-        new_set =\
-            self.client.create_service_appliance_sets(
-                fq_name=self._generate_names(),
-                parent_type="global-system-config")['service-appliance-set']
+        new_set = self._create_service_appliance_sets()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.delete_service_appliance_sets(new_set['uuid'])
-            new_set = None
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            if new_set:
-                self.client.delete_service_appliance_sets(new_set['uuid'])

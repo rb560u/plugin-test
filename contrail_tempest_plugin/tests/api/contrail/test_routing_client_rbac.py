@@ -44,11 +44,36 @@ class RoutingClientTest(base.BaseContrailTest):
             CONF.sdn.endpoint_type)
         cls.admin_client = cls.os_adm.network_client
 
-    def _generate_names(self, name_list=None):
-        if not name_list:
-            name_list = ['default-domain', 'admin']
-        name_list.append(data_utils.rand_name('test'))
-        return name_list
+    @classmethod
+    def resource_setup(cls):
+        super(RoutingClientTest, cls).resource_setup()
+
+        net_name = data_utils.rand_name('test-net')
+        net_fq_name = ['default-domain', 'admin', net_name]
+
+        cls.network = cls.vn_client.create_virtual_networks(
+                parent_type='project',
+                fq_name=net_fq_name)['virtual-network']
+
+    @classmethod
+    def resource_cleanup(cls):
+        cls._try_delete_resource(cls.vn_client.delete_virtual_networks,
+                                 cls.network['uuid'])
+        super(RoutingClientTest, cls).resource_cleanup()
+
+    def _create_routing_instances(self):
+        instance_name = data_utils.rand_name('test-instance')
+        instance_fq_name = ['default-domain', 'admin',
+                            self.network['name'], instance_name]
+
+        new_instance = self.client.create_routing_instances(
+                parent_type='virtual-network',
+                fq_name=instance_fq_name)['routing-instance']
+
+        self.addCleanup(self._try_delete_resource,
+                        self.client.delete_routing_instances,
+                        new_instance['uuid'])
+        return new_instance
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
@@ -66,82 +91,46 @@ class RoutingClientTest(base.BaseContrailTest):
                                  rule="create_routing_instances")
     @test.idempotent_id('3d44a46b-5436-43a8-b2f7-8581f0f04dbc')
     def test_create_routing_instances(self):
-        new_vn =\
-            self.vn_client.create_virtual_networks(
-                parent_type='project',
-                fq_name=self._generate_names())['virtual-network']
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
-            self.client.create_routing_instances(
-                parent_type='virtual-network',
-                fq_name=self._generate_names(new_vn['fq_name']))
+            self._create_routing_instances()
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.vn_client.delete_virtual_networks(new_vn['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="show_routing_instances")
     @test.idempotent_id('161abb37-6037-422b-b453-108a5d10caca')
     def test_show_routing_instances(self):
-        new_vn =\
-            self.vn_client.create_virtual_networks(
-                parent_type='project',
-                fq_name=self._generate_names())['virtual-network']
-        new_names = self._generate_names(new_vn['fq_name'])
-        new_instance =\
-            self.client.create_routing_instances(
-                parent_type='virtual-network',
-                fq_name=new_names)['routing-instance']
+        new_instance = self._create_routing_instances()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.show_routing_instances(new_instance['uuid'])
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.vn_client.delete_virtual_networks(new_vn['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="delete_routing_instances")
     @test.idempotent_id('1d3af01e-01bf-4347-a9bc-633732339e0e')
     def test_delete_routing_instances(self):
-        new_vn =\
-            self.vn_client.create_virtual_networks(
-                parent_type='project',
-                fq_name=self._generate_names())['virtual-network']
-        new_instance =\
-            self.client.create_routing_instances(
-                parent_type='virtual-network',
-                fq_name=self._generate_names(new_vn['fq_name']))['routing-'
-                                                                 'instance']
+        new_instance = self._create_routing_instances()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.delete_routing_instances(new_instance['uuid'])
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.vn_client.delete_virtual_networks(new_vn['uuid'])
 
     @test.attr(type='rbac')
     @rbac_rule_validation.action(component="Contrail",
                                  rule="update_routing_instances")
     @test.idempotent_id('ebcfd442-2a26-4954-968b-e17e414ed0d1')
     def test_update_routing_instances(self):
-        new_vn =\
-            self.vn_client.create_virtual_networks(
-                parent_type='project',
-                fq_name=self._generate_names())['virtual-network']
-        new_instance =\
-            self.client.create_routing_instances(
-                parent_type='virtual-network',
-                fq_name=self._generate_names(new_vn['fq_name']))['routing-'
-                                                                 'instance']
-        update_names = self._generate_names(new_vn['fq_name'])
+        new_instance = self._create_routing_instances()
         rbac_utils.switch_role(self, switchToRbacRole=True)
         try:
             self.client.update_routing_instances(
                 new_instance['uuid'],
-                fq_name=new_vn['fq_name'],
-                routing_instance_is_default=True)
+                display_name=data_utils.rand_name('test-instance'))
         finally:
             rbac_utils.switch_role(self, switchToRbacRole=False)
-            self.vn_client.delete_virtual_networks(new_vn['uuid'])
