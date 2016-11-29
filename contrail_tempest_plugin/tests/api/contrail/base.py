@@ -81,5 +81,3 @@ class BaseContrailTest(test.BaseTestCase):
         # if resource is not found, this means it was deleted in the test
         except exceptions.NotFound:
             pass
-=======
->>>>>>> 0ecc46c45564669a1a68fd22644f6bca0dbe102a
